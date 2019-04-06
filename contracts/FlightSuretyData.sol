@@ -11,18 +11,18 @@ contract FlightSuretyData {
 
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
-    mapping(address => bool) private authorizedCaller;
-
-
+    // Mapping to track authorized AppContracts
+    mapping(address => bool) private authorizedCallers;
+    // Mapping to track voters of operational status
 
     // All airlines
-    mapping(address => Airline) private airlines;
+    mapping(address => Airline) private airlines;    
 
 
     struct Airline {
         address airline;
-        uint votes;
         uint256 balance;
+        bool isRegistered;
     }
 
     /********************************************************************************************/
@@ -35,9 +35,9 @@ contract FlightSuretyData {
     *      The deploying account becomes contractOwner
     */
     constructor
-                                (
-                                ) 
-                                public 
+    (
+    ) 
+    public
     {
         contractOwner = msg.sender;
     }
@@ -79,6 +79,15 @@ contract FlightSuretyData {
         _;
     }
 
+    /**
+    *@dev Modifier that check if caller is authorized
+    */
+    modifier requireAuthorizedCaller(address caller)
+    {
+        require(authorizedCallers[caller], "Caller is not authorized");
+        _;
+    }
+
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
@@ -89,9 +98,9 @@ contract FlightSuretyData {
     * @return A bool that is the current operating status
     */      
     function isOperational() 
-                            public 
-                            view 
-                            returns(bool) 
+    public 
+    view 
+    returns(bool) 
     {
         return operational;
     }
@@ -103,11 +112,11 @@ contract FlightSuretyData {
     * When operational mode is disabled, all write transactions except for this one will fail
     */    
     function setOperatingStatus
-                            (
-                                bool mode
-                            ) 
-                            external
-                            requireContractOwner 
+    (
+        bool mode
+    ) 
+    external
+    requireContractOwner
     {
         operational = mode;
     }
@@ -122,13 +131,16 @@ contract FlightSuretyData {
     *
     */   
     function registerAirline
-                            (   
-                                address airline
-                            )
-                            external
-                            requireIsOperational
+    (   
+        address airline
+    )
+    external
+    requireIsOperational
+    returns (bool success)
     {
-        airlines[airline] = Airline(airline, 0, 0);
+        require(!airlines[airline].isRegistered, "Airline is already registered");
+        airlines[airline] = Airline(airline, 0, true);
+        return airlines[airline].isRegistered;
     }
 
 
@@ -137,10 +149,10 @@ contract FlightSuretyData {
     *
     */   
     function buy
-                            (                             
-                            )
-                            external
-                            payable
+    (                             
+    )
+    external
+    payable
     {
 
     }
@@ -149,10 +161,10 @@ contract FlightSuretyData {
      *  @dev Credits payouts to insurees
     */
     function creditInsurees
-                                (
-                                )
-                                external
-                                pure
+    (
+    )
+    external
+    pure
     {
     }
     
@@ -162,10 +174,10 @@ contract FlightSuretyData {
      *
     */
     function pay
-                            (
-                            )
-                            external
-                            pure
+    (
+    )
+    external
+    pure
     {
     }
 
@@ -175,12 +187,12 @@ contract FlightSuretyData {
     *
     */   
     function fund
-                            (
-                            )
-                            public
-                            payable
+    (
+    )
+    public
+    payable
     {
-        require(msg.value > 0);
+        require(msg.value > 0, "No fund sent");
         // Credit airline balance
         airlines[msg.sender].balance += msg.value;
     }
@@ -203,15 +215,29 @@ contract FlightSuretyData {
     *
     */
     function() 
-                            external 
-                            payable 
+    external 
+    payable 
     {
         fund();
     }
 
+    /**
+    * Utility functions
+    */
+
     function authorizeCaller(address contractAddress) external requireContractOwner
     {
-        authorizedCaller[contractAddress] = true;
+        authorizedCallers[contractAddress] = true;
+    }
+
+    function deAuthorizeCaller(address contractAddress) external requireContractOwner
+    {
+        delete authorizedCallers[contractAddress];
+    }
+
+    /** Check if airline is present */
+    function isAirline(address airline) external returns(bool) {
+        return (airlines[airline].airline != address(0));
     }
 
 

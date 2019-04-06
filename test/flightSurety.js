@@ -7,20 +7,20 @@ contract('Flight Surety Tests', async (accounts) => {
   var config;
   before('setup contract', async () => {
     config = await Test.Config(accounts);
-    await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address);
+    //await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address);
   });
 
   /****************************************************************************************/
   /* Operations and Settings                                                              */
   /****************************************************************************************/
 
-  it(`(multiparty) has correct initial isOperational() value`, async function () {
+//   it(`(multiparty) has correct initial isOperational() value`, async function () {
 
-    // Get operating status
-    let status = await config.flightSuretyData.isOperational.call();
-    assert.equal(status, true, "Incorrect initial operating status value");
+//     // Get operating status
+//     let status = await config.flightSuretyData.isOperational.call();
+//     assert.equal(status, true, "Incorrect initial operating status value");
 
-  });
+//   });
 
 //   it(`(multiparty) can block access to setOperatingStatus() for non-Contract Owner account`, async function () {
 
@@ -52,43 +52,65 @@ contract('Flight Surety Tests', async (accounts) => {
       
 //   });
 
-//   it(`(multiparty) can block access to functions using requireIsOperational when operating status is false`, async function () {
+  // it(`(multiparty) can block access to functions using requireIsOperational when operating status is false`, async function () {
 
-//       await config.flightSuretyData.setOperatingStatus(false);
+  //     await config.flightSuretyData.setOperatingStatus(false);
 
-//       let reverted = false;
-//       try 
-//       {
-//           await config.flightSurety.setTestingMode(true);
-//       }
-//       catch(e) {
-//           reverted = true;
-//       }
-//       assert.equal(reverted, true, "Access not blocked for requireIsOperational");      
+  //     let reverted = false;
+  //     try 
+  //     {
+  //         // This will throw exception due to operational status
+  //         await config.flightSuretyData.registerAirline(config.testAddresses[3]);
+  //     }
+  //     catch(e) {
+  //         reverted = true;
+  //     }
+  //     assert.equal(reverted, true, "Access not blocked for requireIsOperational");      
 
-//       // Set it back for other tests to work
-//       await config.flightSuretyData.setOperatingStatus(true);
+  //     // Set it back for other tests to work
+  //     await config.flightSuretyData.setOperatingStatus(true);
 
-//   });
+  // });
 
-//   it('(airline) cannot register an Airline using registerAirline() if it is not funded', async () => {
-    
-//     // ARRANGE
-//     let newAirline = accounts[2];
+  // it('(airline) cannot register an Airline using registerAirline() if it is not funded', async () => {
+  //   // ARRANGE
+  //   let newAirline = accounts[5];
 
-//     // ACT
-//     try {
-//         await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
-//     }
-//     catch(e) {
+  //   // ACT
+  //   try {
+  //       await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
+  //   }
+  //   catch(e) {
 
-//     }
-//     let result = await config.flightSuretyData.isAirline.call(newAirline); 
+  //   }
+  //   let result = await config.flightSuretyData.isAirline.call(newAirline); 
 
-//     // ASSERT
-//     assert.equal(result, false, "Airline should not be able to register another airline if it hasn't provided funding");
+  //   // ASSERT
+  //   assert.equal(result, false, "Airline should not be able to register another airline if it hasn't provided funding");
 
-//   });
+  // });
+
+
+  it('(airline) cannot register an Airline twice', async () => {
+    // ARRANGE
+    let newAirline = accounts[5];
+
+    let success = false;
+    let reverted = false;
+    // ACT
+    try {
+        success = await config.flightSuretyData.registerAirline.call(newAirline, {from: config.firstAirline});
+        await config.flightSuretyData.registerAirline(newAirline, {from: config.firstAirline});
+    }
+    catch(e) {
+      reverted = true;
+    }
+
+    // ASSERT
+    assert.equal(success, true, "First airline should be registered");
+    assert.equal(reverted, false, "Airline should not be able to register another airline twice");
+
+  });
  
 
 });
