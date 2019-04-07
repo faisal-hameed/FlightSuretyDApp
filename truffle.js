@@ -8,9 +8,9 @@ module.exports = {
     development: {
       provider: function() {
         var wallet = new HDWalletProvider(mnemonic, "http://127.0.0.1:8545/", 0, 50);
-        var nonceTracker = new NonceTrackerSubprovider()
-        wallet.engine._providers.unshift(nonceTracker)
-        nonceTracker.setEngine(wallet.engine)
+        // var nonceTracker = new NonceTrackerSubprovider()
+        // wallet.engine._providers.unshift(nonceTracker)
+        // nonceTracker.setEngine(wallet.engine)
         return wallet
       },
       network_id: '*',

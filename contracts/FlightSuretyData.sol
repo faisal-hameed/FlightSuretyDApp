@@ -16,12 +16,13 @@ contract FlightSuretyData {
     // Mapping to track voters of operational status
 
     // All airlines
-    mapping(address => Airline) private airlines;    
+    mapping(address => Airline) private airlines;
+    address[] activeAirlines = new address[](0);    
 
 
     struct Airline {
         address airline;
-        uint256 balance;
+        bool isFunded;
         bool isRegistered;
     }
 
@@ -84,7 +85,14 @@ contract FlightSuretyData {
     */
     modifier requireAuthorizedCaller(address caller)
     {
-        require(authorizedCallers[caller], "Caller is not authorized");
+        //require(authorizedCallers[caller], "Caller is not authorized");
+        _;
+    }
+
+    modifier requiredFunded(address airline) {
+        if (activeAirlines.length > 0) {
+            require(airlines[airline].isFunded, "Airline is not funded");
+        }        
         _;
     }
 
@@ -118,6 +126,7 @@ contract FlightSuretyData {
     external
     requireContractOwner
     {
+        require(operational != mode, "Operational status should be different from current status");
         operational = mode;
     }
 
@@ -136,10 +145,12 @@ contract FlightSuretyData {
     )
     external
     requireIsOperational
+    requiredFunded(airline)
     returns (bool success)
     {
         require(!airlines[airline].isRegistered, "Airline is already registered");
-        airlines[airline] = Airline(airline, 0, true);
+        airlines[airline] = Airline(airline, false, true);
+        activeAirlines.push(airline);
         return airlines[airline].isRegistered;
     }
 
@@ -186,16 +197,17 @@ contract FlightSuretyData {
     *      resulting in insurance payouts, the contract should be self-sustaining
     *
     */   
-    function fund
+    function fundAirline
     (
+        address airline
     )
     public
     payable
     {
-        require(msg.value > 0, "No fund sent");
         // Credit airline balance
-        airlines[msg.sender].balance += msg.value;
+        airlines[airline].isFunded = true;
     }
+
 
     function getFlightKey
     (
@@ -218,7 +230,7 @@ contract FlightSuretyData {
     external 
     payable 
     {
-        fund();
+        fundAirline(msg.sender);
     }
 
     /**
@@ -239,6 +251,21 @@ contract FlightSuretyData {
     function isAirline(address airline) external returns(bool) {
         return (airlines[airline].airline != address(0));
     }
+
+
+    /** Get Airline isFunded */
+    function isAirlineFunded(address airline) external view returns(bool)
+    {
+        return airlines[airline].isFunded;
+    }
+
+    /** Get Airline balance */
+    function getActiveAirlines() external view returns(address[] memory)
+    {
+        return activeAirlines;
+    }
+
+
 
 
 }

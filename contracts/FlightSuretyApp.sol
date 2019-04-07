@@ -28,14 +28,10 @@ contract FlightSuretyApp {
     address private contractOwner;          // Account used to deploy contract
     FlightSuretyData flightDataContract;
 
-
-    struct Airline {
-        bool isRegistered;
-        uint8 statusCode;
-        uint256 updatedTimestamp;        
-        address airline;
-    }
     mapping(address => address[]) airlineVotes;
+
+    uint constant AIRLINES_THRESHOLD = 5;
+    uint public constant SEED_FUNDING = 10 ether;
 
     /********************************************************************************************/
     /*                                       EVENTS DEFINITIONS                                 */
@@ -92,7 +88,7 @@ contract FlightSuretyApp {
         log0("Data contract : ");
         flightDataContract = FlightSuretyData(dataContract);
         // Register first airline
-        registerAirline(firstAirline);
+        registerAirline(firstAirline);        
     }
 
     /********************************************************************************************/
@@ -105,6 +101,16 @@ contract FlightSuretyApp {
     returns(bool) 
     {
         return flightDataContract.isOperational();
+    }
+
+    function setOperatingStatus
+    (
+        bool mode
+    ) 
+    external
+    requireContractOwner
+    {
+        flightDataContract.setOperatingStatus(mode);
     }
 
     /********************************************************************************************/
@@ -123,9 +129,52 @@ contract FlightSuretyApp {
     public
     returns(bool success, uint256 votes)
     {
-        bool sucess = flightDataContract.registerAirline(airline);
+        bool sucess = false;
+        address[] memory airlines = flightDataContract.getActiveAirlines();
+        if (airlines.length == 0 ) {
+            // First airline
+            sucess = flightDataContract.registerAirline(airline);    
+        } else if (airlines.length < AIRLINES_THRESHOLD) {
+            // Only existing airlines can register new airlines
+            require(flightDataContract.isAirline(msg.sender), "Only existing airlines can register new airline");
+            sucess = flightDataContract.registerAirline(airline);    
+        } else {
+            // Cast airline votes
+            bool isDuplicate = false;
+            for(uint8 i = 0; i < airlineVotes[airline].length; i++) {
+                if (airlineVotes[airline][i] == msg.sender) {
+                    isDuplicate = true;
+                    break;
+                }
+            }
+            require(!isDuplicate, "Duplicate votes are not allowed");
+            airlineVotes[airline].push(airline);
+            // If votes are sufficient then register ailine
+            if (airlineVotes[airline].length >= airlines.length.div(2)) {
+                sucess = flightDataContract.registerAirline(airline);
+                // Reset voting process for this airline
+                airlineVotes[airline] = new address[](0);
+            }
+        }
+
         emit AirlineRegistered(airline, airlineVotes[airline].length);
         return (sucess, airlineVotes[airline].length);
+    }
+
+
+    /**
+    * @dev Fund airline by transffering value to contract address using debit first approach
+    *
+    */   
+    function fundAirline
+    (
+    )
+    public
+    payable
+    {
+        require(msg.value >= SEED_FUNDING, "Not sufficient fund sent");
+        // Credit airline balance
+        flightDataContract.fundAirline.value(SEED_FUNDING)(msg.sender);
     }
 
 
