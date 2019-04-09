@@ -22,15 +22,20 @@ import './flightsurety.css';
             let flight = DOM.elid('flight-number').value;
             // Write transaction
             contract.fetchFlightStatus(flight, (error, result) => {
+                console.log(result);
                 display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
             });
-        })
+        });
     
     });
     
 
 })();
 
+
+function displayFlighStatus() {
+
+}
 
 function display(title, description, results) {
     let displayDiv = DOM.elid("display-wrapper");
