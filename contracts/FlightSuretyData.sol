@@ -85,7 +85,7 @@ contract FlightSuretyData {
     */
     modifier requireAuthorizedCaller(address caller)
     {
-        //require(authorizedCallers[caller], "Caller is not authorized");
+        require(authorizedCallers[caller], "Caller is not authorized");
         _;
     }
 

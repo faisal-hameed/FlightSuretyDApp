@@ -34,7 +34,6 @@ function initAccounts() {
         .then(result => {
           console.log('App registered as authorized caller')
         });
-
       resolve(accounts);
 
     }).catch(err => {
@@ -45,15 +44,15 @@ function initAccounts() {
 
 function initOracles(accounts) {
   return new Promise((resolve, reject) => {
-    console.log('Initialized Oracles');
+    console.log('>> Initialized Oracles');
     flightSuretyApp.methods.REGISTRATION_FEE().call().then(fee => {
       console.log('Registration fee is : ' + web3.utils.fromWei(fee, 'ether') + ' ether')
 
       // Register Oracles
-      for (let idx = ACCOUNT_OFFSET; idx < ORACLES_COUNT + ACCOUNT_OFFSET; idx++) {
+      for (let oidx = ACCOUNT_OFFSET; oidx < ORACLES_COUNT + ACCOUNT_OFFSET; oidx++) {
         flightSuretyApp.methods
           .registerOracle()
-          .send({ from: accounts[idx], value: fee, gas: 3000000 }, (reg_error, reg_result) => {
+          .send({ from: accounts[oidx], value: fee, gas: 3000000 }, (reg_error, reg_result) => {
             if (reg_error) {
               console.log(reg_error);
 
@@ -62,14 +61,13 @@ function initOracles(accounts) {
               // Fetch Indexes for a specific oracle account
               flightSuretyApp.methods
                 .getMyIndexes()
-                .call({ from: accounts[idx] }, (error, indexes) => {
+                .call({ from: accounts[oidx] }, (error, indexes) => {
                   if (error) {
                     console.log(error);
-
                   } else {
                     // Added registered account to oracle account list
                     let oracle = {
-                      address: accounts[idx],
+                      address: accounts[oidx],
                       indexes: indexes
                     };
 
@@ -90,47 +88,49 @@ function initOracles(accounts) {
   });
 }
 
-function watchForOracelResponse(oracles) {
+function simulateOracelResponse(oracles) {
   return new Promise((resolve, reject) => {
+    console.log('>> Simulate Oracel Response');
     flightSuretyApp.events.OracleRequest({
       fromBlock: 0
     }, function (error, event) {
       if (error) console.log(error)
       else {
-        console.log('Event emiited from smart contract : ' + event)
-        let index = event.returnValues.index;
-        let airline = event.returnValues.airline;
-        let flight = event.returnValues.flight;
-        let timestamp = event.returnValues.timestamp;
-        let statusCode = STATUS_CODE_ON_TIME;
+        console.log('Event emmited from smart contract : ' + JSON.stringify(event.event));
+        let payload = {
+          index: event.returnValues.index,
+          airline: event.returnValues.airline,
+          flight: event.returnValues.flight,
+          timestamp: event.returnValues.timestamp,
+          statusCode: STATUS_CODE_ON_TIME
+        }
+        console.log("Payload : " + JSON.stringify(payload));
         // Select status code based on flight time
 
 
-        if ((timestamp * 1000) < Date.now()) {
-          statusCode = STATUS_CODE_LATE_FLIGHT;
+        if ((payload.timestamp * 1000) < Date.now()) {
+          payload.statusCode = STATUS_CODE_LATE_FLIGHT;
         }
 
         // Fetching Indexes for Oracle Accounts
-        for (let idx = 0; idx < oracle_accounts.length; idx++) {
+        for (let oidx = 0; oidx < oracle_accounts.length; oidx++) {
 
-          if (oracle_accounts[idx].indexes.includes(index)) {
-            console.log("Oracle matches an react to request: " + JSON.stringify(oracle_accounts[idx]));
+          if (oracle_accounts[oidx].indexes.includes(payload.index)) {
+            console.log("Oracle matches with requested index : " + JSON.stringify(oracle_accounts[oidx]));
 
             // Submit Oracle Response
             flightSuretyApp.methods
-              .submitOracleResponse(index, airline, flight, timestamp, statusCode)
-              .send({ from: oracle_accounts[idx].address, gas: 200000 }, (error, result) => {
+              .submitOracleResponse(payload.index, payload.airline, payload.flight, payload.timestamp, payload.statusCode)
+              .send({ from: oracle_accounts[oidx].address, gas: 200000 }, (error, result) => {
                 if (error) {
-                  console.log(error);
+                  console.log('Tx error : ' + error.message);
                 } else {
-                  console.log("Sended Oracle Response " + JSON.stringify(oracle_accounts[idx]) + " Status Code: " + statusCode);
+                  console.log("Sended Oracle Response " + JSON.stringify(oracle_accounts[oidx]) + " Status Code: " + payload.statusCode);
                 }
               });
           }
         }
-
       }
-
     });
 
   });
@@ -140,17 +140,16 @@ function watchForOracelResponse(oracles) {
 initAccounts()
   .then(accounts => {
     initOracles(accounts)
-      .then(oracles => {
-        watchForOracelResponse(oracles).then(() => {
-          initREST();
-        });
-      });
-  });
+  }).then(oracles => {
+    simulateOracelResponse(oracles)
+  }).then(() => {
+    initREST();
+  });;
 
 // Initialize rest endpoints
 const app = express();
 function initREST() {
-  console.log('Initialized rest API');
+  console.log('>> Initialized rest API');
   app.get('/api', (req, res) => {
     res.send({
       message: 'An API for use with your Dapp!'

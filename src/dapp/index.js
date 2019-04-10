@@ -23,7 +23,7 @@ import './flightsurety.css';
             // Write transaction
             contract.fetchFlightStatus(flight, (error, result) => {
                 console.log(result);
-                display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
+                display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: JSON.stringify(result)} ]);
             });
         });
     

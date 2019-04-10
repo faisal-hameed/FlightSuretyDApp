@@ -184,11 +184,14 @@ contract FlightSuretyApp {
     */  
     function registerFlight
     (
+        address airline,
+        string flight,
+        uint256 timestamp
     )
     external
     pure
     {
-
+        // TODO register flight
     }
     
    /**
@@ -261,7 +264,7 @@ contract FlightSuretyApp {
     mapping(bytes32 => ResponseInfo) private oracleResponses;
 
     // Event fired each time an oracle submits a response
-    event FlightStatusInfo(address airline, string flight, uint256 timestamp, uint8 status);
+    event FlightStatusInfo(address airline, string flight, uint256 timestamp, uint8 status, uint8 index);
 
     event OracleReport(address airline, string flight, uint256 timestamp, uint8 status);
 
@@ -327,8 +330,11 @@ contract FlightSuretyApp {
         // oracles respond with the *** same *** information
         emit OracleReport(airline, flight, timestamp, statusCode);
         if (oracleResponses[key].responses[statusCode].length >= MIN_RESPONSES) {
+            
+            // Close accepting status to prevent emitting events
+            oracleResponses[key].isOpen = false;
 
-            emit FlightStatusInfo(airline, flight, timestamp, statusCode);
+            emit FlightStatusInfo(airline, flight, timestamp, statusCode, index);
 
             // Handle flight status as appropriate
             processFlightStatus(airline, flight, timestamp, statusCode);

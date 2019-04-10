@@ -8,7 +8,7 @@ contract('Flight Surety Tests', async (accounts) => {
   const SEED_FUND = web3.toWei(10, "ether")
   before('setup contract', async () => {
     config = await Test.Config(accounts);
-    //await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address);
+    await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address);
   });
 
   /****************************************************************************************/
