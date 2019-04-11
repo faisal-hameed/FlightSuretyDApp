@@ -266,7 +266,7 @@ contract FlightSuretyApp {
     // Event fired each time an oracle submits a response
     event FlightStatusInfo(address airline, string flight, uint256 timestamp, uint8 status, uint8 index);
 
-    event OracleReport(address airline, string flight, uint256 timestamp, uint8 status);
+    event OracleReport(address airline, string flight, uint256 timestamp, uint8 statusCode);
 
     // Event fired when flight status request is submitted
     // Oracles track this and if they have a matching index

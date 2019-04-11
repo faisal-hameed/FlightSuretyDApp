@@ -15,6 +15,11 @@ import './flightsurety.css';
             console.log(error,result);
             display('Operational Status', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
+
+        // Read transaction
+        contract.fetchFlightInfo((error, result) => {
+            display('Flight Info', '', [ { label: 'Flight Info', error: error, value: JSON.stringify(result)} ]);
+        });
     
 
         // User-submitted transaction
