@@ -30,7 +30,7 @@ contract FlightSuretyApp {
 
     mapping(address => address[]) airlineVotes;
 
-    uint constant AIRLINES_THRESHOLD = 5;
+    uint constant AIRLINES_THRESHOLD = 3;
     uint public constant SEED_FUNDING = 10 ether;
 
     /********************************************************************************************/
@@ -38,7 +38,8 @@ contract FlightSuretyApp {
     /********************************************************************************************/
     event AirlineRegistered(
         address indexed airline,
-        uint votes
+        uint votes,
+        uint totalAirlines
     );
  
     /********************************************************************************************/
@@ -66,6 +67,14 @@ contract FlightSuretyApp {
     modifier requireContractOwner()
     {
         require(msg.sender == contractOwner, "Caller is not contract owner");
+        _;
+    }
+
+    modifier requireFunded(address airline) {
+        require(flightDataContract.isAirlineFunded(airline), "Airline is not funded");
+        // if (activeAirlines.length > 0) {
+        //     require(airlines[airline].isFunded, "Airline is not funded");
+        // }        
         _;
     }
 
@@ -127,7 +136,8 @@ contract FlightSuretyApp {
         address airline
     )
     public
-    returns(bool success, uint256 votes)
+    requireFunded(msg.sender)
+    returns(bool success, uint256 votes, uint256 totalAirlines)
     {
         bool sucess = false;
         address[] memory airlines = flightDataContract.getActiveAirlines();
@@ -136,7 +146,7 @@ contract FlightSuretyApp {
             sucess = flightDataContract.registerAirline(airline);    
         } else if (airlines.length < AIRLINES_THRESHOLD) {
             // Only existing airlines can register new airlines
-            require(flightDataContract.isAirline(msg.sender), "Only existing airlines can register new airline");
+            //require(flightDataContract.isAirline(msg.sender), "Only existing airlines can register new airline");
             sucess = flightDataContract.registerAirline(airline);    
         } else {
             // Cast airline votes
@@ -147,18 +157,18 @@ contract FlightSuretyApp {
                     break;
                 }
             }
-            require(!isDuplicate, "Duplicate votes are not allowed");
-            airlineVotes[airline].push(airline);
+            require(isDuplicate, "Duplicate votes are not allowed");
+            airlineVotes[airline].push(msg.sender);
             // If votes are sufficient then register ailine
-            if (airlineVotes[airline].length >= airlines.length.div(2)) {
+            if (airlineVotes[airline].length > airlines.length.div(2)) {
                 sucess = flightDataContract.registerAirline(airline);
                 // Reset voting process for this airline
                 airlineVotes[airline] = new address[](0);
             }
         }
 
-        emit AirlineRegistered(airline, airlineVotes[airline].length);
-        return (sucess, airlineVotes[airline].length);
+        emit AirlineRegistered(airline, airlineVotes[airline].length, airlines.length);
+        return (sucess, airlineVotes[airline].length, airlines.length);
     }
 
 

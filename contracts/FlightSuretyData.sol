@@ -89,13 +89,6 @@ contract FlightSuretyData {
         _;
     }
 
-    modifier requiredFunded(address airline) {
-        if (activeAirlines.length > 0) {
-            require(airlines[airline].isFunded, "Airline is not funded");
-        }        
-        _;
-    }
-
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
@@ -145,7 +138,7 @@ contract FlightSuretyData {
     )
     external
     requireIsOperational
-    requiredFunded(airline)
+    //requiredFunded(airline)
     returns (bool success)
     {
         require(!airlines[airline].isRegistered, "Airline is already registered");
@@ -256,6 +249,10 @@ contract FlightSuretyData {
     /** Get Airline isFunded */
     function isAirlineFunded(address airline) external view returns(bool)
     {
+        if (activeAirlines.length == 0) {
+            // let first airline pass
+            return true;
+        }
         return airlines[airline].isFunded;
     }
 
