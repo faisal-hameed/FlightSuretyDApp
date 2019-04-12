@@ -99,7 +99,7 @@ contract('Flight Surety Tests', async (accounts) => {
       await config.flightSuretyApp.registerAirline(newAirline, { from: config.firstAirline });
     }
     catch (e) {
-      console.log(e)
+      console.log(e.message)
       reverted = true;
     }
     let result = await config.flightSuretyData.isAirline.call(newAirline);
@@ -189,10 +189,14 @@ contract('Flight Surety Tests', async (accounts) => {
       await config.flightSuretyApp.registerAirline(newAirline, { from: config.firstAirline });
     }
     catch (e) {
-      console.log(e)
+      console.log(e.message)
     }
+    let votes = await config.flightSuretyApp.getVotes.call(newAirline);
+    // console.log('Votes for : ' + newAirline)
+    // console.log(JSON.stringify(votes))
     let isAirline = await config.flightSuretyData.isAirline.call(newAirline);
     // ASSERT
+    assert.equal(votes.length, 1, "Must have 1 vote casted")
     assert.equal(isAirline, false, "Airline not registered, requires 1/2 consensus for registration");
 
   });
@@ -212,7 +216,7 @@ contract('Flight Surety Tests', async (accounts) => {
       await config.flightSuretyApp.registerAirline(newAirline, { from: notFundedAccount });
     }
     catch (e) {
-      console.log('>>> NotFunded');
+      console.log(e.message);
       reverted = true
     }
 
@@ -233,7 +237,7 @@ contract('Flight Surety Tests', async (accounts) => {
       let res = await config.flightSuretyApp.registerAirline(newAirline, { from: config.firstAirline });
     }
     catch (e) {
-      console.log('>>>>Duplicate vote')
+      console.log(e.message)
       reverted = true
     }
 
@@ -257,7 +261,7 @@ contract('Flight Surety Tests', async (accounts) => {
       await config.flightSuretyApp.registerAirline(newAirline, { from: fundedAccount });
     }
     catch (e) {
-      console.log('Done : '+e)
+      console.log(e.votes)
       reverted = true
     }
     let isAirline = await config.flightSuretyData.isAirline.call(newAirline);

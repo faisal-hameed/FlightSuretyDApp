@@ -157,7 +157,7 @@ contract FlightSuretyApp {
                     break;
                 }
             }
-            require(isDuplicate, "Duplicate votes are not allowed");
+            require(!isDuplicate, "Duplicate votes are not allowed");
             airlineVotes[airline].push(msg.sender);
             // If votes are sufficient then register ailine
             if (airlineVotes[airline].length > airlines.length.div(2)) {
@@ -169,6 +169,10 @@ contract FlightSuretyApp {
 
         emit AirlineRegistered(airline, airlineVotes[airline].length, airlines.length);
         return (sucess, airlineVotes[airline].length, airlines.length);
+    }
+
+    function getVotes(address airline) external view returns (address[] memory) {
+        return airlineVotes[airline];
     }
 
 
