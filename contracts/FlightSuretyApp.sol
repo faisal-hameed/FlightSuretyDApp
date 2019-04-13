@@ -74,7 +74,7 @@ contract FlightSuretyApp {
         require(flightDataContract.isAirlineFunded(airline), "Airline is not funded");
         // if (activeAirlines.length > 0) {
         //     require(airlines[airline].isFunded, "Airline is not funded");
-        // }        
+        // }  
         _;
     }
 
@@ -191,38 +191,22 @@ contract FlightSuretyApp {
         flightDataContract.fundAirline.value(SEED_FUNDING)(msg.sender);
     }
 
-
-   /**
-    * @dev Register a future flight for insuring.
-    *
-    */  
-    function registerFlight
-    (
-        address airline,
-        string flight,
-        uint256 timestamp
-    )
-    external
-    pure
-    {
-        // TODO register flight
-    }
     
-   /**
-    * @dev Called after oracle has updated flight status
-    *
-    */  
-    function processFlightStatus
-    (
-        address airline,
-        string memory flight,
-        uint256 timestamp,
-        uint8 statusCode
-    )
-    internal
-    pure
-    {
-    }
+//    /**
+//     * @dev Called after oracle has updated flight status
+//     *
+//     */  
+//     function processFlightStatus
+//     (
+//         address airline,
+//         string memory flight,
+//         uint256 timestamp,
+//         uint8 statusCode
+//     )
+//     internal
+//     pure
+//     {
+//     }
 
 
     // Generate a request for oracles to fetch flight information
@@ -351,7 +335,7 @@ contract FlightSuretyApp {
             emit FlightStatusInfo(airline, flight, timestamp, statusCode, index);
 
             // Handle flight status as appropriate
-            processFlightStatus(airline, flight, timestamp, statusCode);
+            //processFlightStatus(airline, flight, timestamp, statusCode);
         }
     }
 
