@@ -13,7 +13,6 @@ export default class Contract {
         this.owner = null;
         this.airlines = [];
         this.passengers = [];
-        this.callback1 = null;
     }
 
     initialize(callback) {
@@ -34,6 +33,26 @@ export default class Contract {
             callback();
         });
 
+    }
+
+    regeisterAirline(airline, callback) {
+        let self = this;
+        self.flightSuretyApp.methods
+            .registerAirline(airline)
+            .send({ from: self.owner }, (error, result) => {
+                callback(error, result);
+            });
+    }
+
+    fundAirline(airline, seedFund, callback) {
+        let self = this;
+        let seed = web3.toWei(seedFund.toString(), 'ether');
+        console.log('Send seed funding : ' + seed);
+        self.flightSuretyApp.methods
+            .fundAirline()
+            .send({ from: airline, value: seed }, (error, result) => {
+                callback(error, result);
+            });
     }
 
     isOperational(callback) {
@@ -79,6 +98,52 @@ export default class Contract {
                     }
                     callback(error, result);
                     console.log('Event (FlightStatusInfo) emited from smart contract : ' + JSON.stringify(result))
+                }
+            }
+        });
+    }
+
+    onEventAirlineRegistered(callback) {
+        let self = this;
+        this.flightSuretyApp.events.AirlineRegistered({
+            fromBlock: "latest"
+        }, function (error, event) {
+            console.log('Event type is : ' + event.event)
+            if (error) console.log('Error in reading event : ' + error)
+            else {
+                if (event.event === 'AirlineRegistered') {
+                    console.log('Event (AirlineRegistered) emited from smart contract : ' + JSON.stringify(event.returnValues))
+
+                    // let result = {
+                    //     //airline: event.returnValues.airline,
+                    //     flight: event.returnValues.flight,
+                    //     timestamp: event.returnValues.timestamp,
+                    //     statusCode: event.returnValues.statusCode, // statusCode
+                    //     index: event.returnValues.index // index requested
+                    // }
+                    // callback(error, result);
+                    console.log('Event (AirlineRegistered) emited from smart contract : ' + JSON.stringify(result))
+                }
+            }
+        });
+    }
+
+    onEventAirlineFunded(callback) {
+        let self = this;
+        this.flightSuretyApp.events.AirlineFunded({
+            fromBlock: "latest"
+        }, function (error, event) {
+            console.log('Event type is : ' + event.event)
+            if (error) console.log('Error in reading event : ' + error)
+            else {
+                if (event.event === 'AirlineFunded') {
+                    let result = {
+                        event: event.event,
+                        airline: event.returnValues.airline,
+                        fund: event.returnValues.fund
+                    }
+                    callback(error, result);
+                    console.log('Event (AirlineFunded) emited from smart contract : ' + JSON.stringify(event.returnValues))
                 }
             }
         });

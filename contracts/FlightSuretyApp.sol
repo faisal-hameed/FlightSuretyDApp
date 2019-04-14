@@ -41,6 +41,11 @@ contract FlightSuretyApp {
         uint votes,
         uint totalAirlines
     );
+
+    event AirlineFunded(
+        address indexed airline,
+        uint fund
+    );
  
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -189,6 +194,7 @@ contract FlightSuretyApp {
         require(msg.value >= SEED_FUNDING, "Not sufficient fund sent");
         // Credit airline balance
         flightDataContract.fundAirline.value(SEED_FUNDING)(msg.sender);
+        emit AirlineFunded(msg.sender, msg.value);
     }
 
     
@@ -226,6 +232,35 @@ contract FlightSuretyApp {
 
         emit OracleRequest(index, airline, flight, timestamp);
     } 
+
+/**
+    * @dev Register a future flight for insuring.
+    *
+    */  
+    function registerFlight
+    (
+        address airline,
+        string flight,
+        uint256 timestamp
+    )
+    external
+    requireIsOperational
+    {
+        flightDataContract.registerFlight(airline, flight, timestamp);
+    }
+
+
+    function buyInsurance
+    (
+        address airline,
+        string flight,
+        uint256 timestamp
+    ) 
+    external
+    payable
+    {
+        flightDataContract.buyInsurance.value(msg.value)(airline, flight, timestamp);
+    }
 
 
 // region ORACLE MANAGEMENT
