@@ -5,7 +5,7 @@ var BigNumber = require('bignumber.js');
 contract('Flight Surety Tests', async (accounts) => {
 
   var config;
-  const SEED_FUND = web3.toWei(10, "ether")
+  const SEED_FUND = web3.utils.toWei("10", "ether")
   before('setup contract', async () => {
     config = await Test.Config(accounts);
     await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address);
@@ -74,7 +74,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
   it('(airline) cannot deposit less than seed funds', async () => {
     // ARRANGE
-    const LESS_FUND = web3.toWei(9, "ether")
+    const LESS_FUND = web3.utils.toWei("9", "ether")
 
     let reverted = false;
     // ACT

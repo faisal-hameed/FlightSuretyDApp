@@ -5,7 +5,7 @@ var BigNumber = require('bignumber.js');
 contract('Flight Surety Tests', async (accounts) => {
 
   var config;
-  const SEED_FUND = web3.toWei(10, "ether")
+  const SEED_FUND = web3.utils.toWei("10", "ether")
   const FLIGHTS = {
     'NYC': {
       airline: accounts[1],
@@ -89,7 +89,7 @@ contract('Flight Surety Tests', async (accounts) => {
   it('(passengers) Passengers cannot select non-registered flight', async function () {
     let flight = FLIGHTS.LHR;
     let passenger = accounts[11];
-    let insurance = web3.toWei(0, 'ether');
+    let insurance = web3.utils.toWei("0", 'ether');
     let accessDenied = false;
     try {
       await config.flightSuretyData.buyInsurance(flight.airline, flight.flight, flight.timestamp, { from: passenger, value: insurance });
@@ -104,7 +104,7 @@ contract('Flight Surety Tests', async (accounts) => {
   it('(passengers) Passengers cannot purchase insurance without funds', async function () {
     let flight = FLIGHTS.NYC;
     let passenger = accounts[11];
-    let insurance = web3.toWei(0, 'ether');
+    let insurance = web3.utils.toWei("0", 'ether');
     let accessDenied = false;
     try {
       await config.flightSuretyData.buyInsurance(flight.airline, flight.flight, flight.timestamp, { from: passenger, value: insurance });
@@ -119,7 +119,7 @@ contract('Flight Surety Tests', async (accounts) => {
   it('(passengers) Passengers cannot purchase insurance beyond limits', async function () {
     let flight = FLIGHTS.NYC;
     let passenger = accounts[11];
-    let insurance = web3.toWei(1, 'ether') + 1;
+    let insurance = web3.utils.toWei("1", 'ether') + 1;
     let accessDenied = false;
     try {
       await config.flightSuretyData.buyInsurance(flight.airline, flight.flight, flight.timestamp, { from: passenger, value: insurance });
@@ -134,12 +134,12 @@ contract('Flight Surety Tests', async (accounts) => {
   it('(passengers) Passengers can purchase insurance', async function () {
     let flight = FLIGHTS.NYC;
     let passenger = accounts[11];
-    let insurance = web3.toWei(1, 'ether');
+    let insurance = web3.utils.toWei("1", 'ether');
 
     await config.flightSuretyData.buyInsurance(flight.airline, flight.flight, flight.timestamp, { from: passenger, value: insurance });
 
     let amount = await config.flightSuretyData.getInsuranceAmount.call({ from: passenger });
-    console.log('Insurance amount : ' + web3.fromWei(amount, 'ether') + ' ether')
+    printEth('Insurance amount : ' , amount);
     assert.equal(amount, insurance, "Insurance amount not matching with purchased amount");
   });
 
@@ -147,8 +147,9 @@ contract('Flight Surety Tests', async (accounts) => {
   it('(Insurance) Insurance amount is credited by 1.5 x', async function () {
     let flight = FLIGHTS.NYC;
     let passenger = accounts[11];
-    let insurance = web3.toWei(1, 'ether')
-    let expected = web3.toWei(1 + (1 * 1.5), 'ether');
+    let insurance = web3.utils.toWei("1", 'ether')
+    var newAmount = 1 + (1 * 1.5);
+    let expected = web3.utils.toWei(newAmount.toString(), 'ether');
 
     try {
       await config.flightSuretyData.creditInsuree(passenger, flight.airline);
@@ -166,9 +167,9 @@ contract('Flight Surety Tests', async (accounts) => {
     let flight = FLIGHTS.NYC;
     let passenger = accounts[11];
 
-    let withdrawAmount = web3.toWei(1, 'ether')
+    let withdrawAmount = web3.utils.toWei("1", 'ether')
 
-    const prevBalance = web3.eth.getBalance(passenger)
+    const prevBalance = await web3.eth.getBalance(passenger)
     printEth('Prev balance : ', prevBalance)
 
     try {
@@ -176,7 +177,7 @@ contract('Flight Surety Tests', async (accounts) => {
     } catch (e) {
       console.log(e.message)
     }
-    const newBalance = web3.eth.getBalance(passenger)
+    const newBalance = await web3.eth.getBalance(passenger)
 
     console.log('Diff ' + (newBalance - prevBalance));
 
@@ -184,8 +185,7 @@ contract('Flight Surety Tests', async (accounts) => {
   });
 
   function printEth(label, amount) {
-
-    console.log(label + ' : ' + web3.fromWei(amount, 'ether') + ' ether')
+    console.log(label + ' : ' + web3.utils.fromWei(amount.toString(), 'ether') + ' ether')
   }
 
 
