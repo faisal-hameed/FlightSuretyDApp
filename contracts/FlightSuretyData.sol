@@ -30,12 +30,6 @@ contract FlightSuretyData {
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
 
-    event FlightRegistered(
-        address indexed airline,
-        string flight,
-        uint256 timestamp
-    );
-
     event InsuranceCredited(
         uint256 insurance
     );
@@ -92,7 +86,9 @@ contract FlightSuretyData {
     */
     modifier requireRegisteredAirline(address airline)
     {
-        require(airlines[airline].airline != address(0), "Airline is not registered");
+        require(airline != address(0), "Airline is not registered-0");
+        address tempAddress = airlines[airline].airline;
+        require(tempAddress != address(0), "Airline is not registered-1");
         _;
     }
 
@@ -158,14 +154,13 @@ contract FlightSuretyData {
     (   
         address airline
     )
-    external
+    public
     requireIsOperational
-    returns (bool success)
     {
         require(!airlines[airline].isRegistered, "Airline is already registered");
         airlines[airline] = Airline(airline, false, true);
         activeAirlines.push(airline);
-        return airlines[airline].isRegistered;
+        //return airlines[airline].isRegistered;
     }
 
    /**
@@ -253,15 +248,13 @@ contract FlightSuretyData {
         string flight,
         uint256 timestamp
     )
-    external
+    public
     requireIsOperational
-    requireRegisteredAirline(airline)
+    //requireRegisteredAirline(airline)
     {
         bytes32 key = getFlightKey(airline, flight, timestamp);
         require(!flights[key].isRegistered, "Flight is already registered");
         flights[key] = Flight(airline, flight, timestamp, true);
-
-        emit FlightRegistered(airline, flight, timestamp);
     }
 
 

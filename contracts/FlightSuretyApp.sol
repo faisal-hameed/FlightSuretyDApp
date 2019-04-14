@@ -46,6 +46,13 @@ contract FlightSuretyApp {
         address indexed airline,
         uint fund
     );
+
+    
+    event FlightRegistered(
+        address indexed airline,
+        string flight,
+        uint256 timestamp
+    );
  
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -102,7 +109,7 @@ contract FlightSuretyApp {
         log0("Data contract : ");
         flightDataContract = FlightSuretyData(dataContract);
         // Register first airline
-        registerAirline(firstAirline);        
+        registerAirline(firstAirline);
     }
 
     /********************************************************************************************/
@@ -144,15 +151,16 @@ contract FlightSuretyApp {
     requireFunded(msg.sender)
     returns(bool success, uint256 votes, uint256 totalAirlines)
     {
-        bool sucess = false;
+        require(airline != address(0), "Invalid address of first airline");
+
         address[] memory airlines = flightDataContract.getActiveAirlines();
         if (airlines.length == 0 ) {
             // First airline
-            sucess = flightDataContract.registerAirline(airline);    
+            flightDataContract.registerAirline(airline);
         } else if (airlines.length < AIRLINES_THRESHOLD) {
             // Only existing airlines can register new airlines
-            //require(flightDataContract.isAirline(msg.sender), "Only existing airlines can register new airline");
-            sucess = flightDataContract.registerAirline(airline);    
+            require(flightDataContract.isAirline(msg.sender), "Only existing airlines can register new airline");
+            flightDataContract.registerAirline(airline);    
         } else {
             // Cast airline votes
             bool isDuplicate = false;
@@ -166,18 +174,24 @@ contract FlightSuretyApp {
             airlineVotes[airline].push(msg.sender);
             // If votes are sufficient then register ailine
             if (airlineVotes[airline].length > airlines.length.div(2)) {
-                sucess = flightDataContract.registerAirline(airline);
+                flightDataContract.registerAirline(airline);
                 // Reset voting process for this airline
                 airlineVotes[airline] = new address[](0);
             }
         }
 
         emit AirlineRegistered(airline, airlineVotes[airline].length, airlines.length);
-        return (sucess, airlineVotes[airline].length, airlines.length);
+        return (true, airlineVotes[airline].length, airlines.length);
     }
 
     function getVotes(address airline) external view returns (address[] memory) {
         return airlineVotes[airline];
+    }
+
+    /** Get airlines*/
+    function getActiveAirlines() external view returns(address[] memory)
+    {
+        return flightDataContract.getActiveAirlines();
     }
 
 
@@ -243,10 +257,15 @@ contract FlightSuretyApp {
         string flight,
         uint256 timestamp
     )
-    external
+    public
     requireIsOperational
     {
+        //require(flightDataContract.isAirline(airline), "Airline is not registered for flights");
+
+        emit FlightRegistered(airline, flight, timestamp);
+        // Error Returned error: VM Exception while processing transaction: revert
         flightDataContract.registerFlight(airline, flight, timestamp);
+        emit FlightRegistered(airline, flight, timestamp);
     }
 
 
