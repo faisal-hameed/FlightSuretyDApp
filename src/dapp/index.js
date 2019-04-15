@@ -12,7 +12,8 @@ import './flightsurety.css';
             //airline: contract.airlines[1],
             flight: 'SV-NYC',
             timestamp: Math.floor(Date.now() / 1000 - 250000)
-        },
+        }
+        ,
         {
             //airline: contract.airlines[1],
             flight: 'PK-LHR',
@@ -25,8 +26,10 @@ import './flightsurety.css';
         // Read transaction
         contract.isOperational((error, result) => {
             console.log(error, result);
-            display('display-wrapper', 'Operational Status', 'Check if contract is operational', [{ label: 'Operational Status', error: error, value: JSON.stringify(result) }]);
+            display('display-status', 'Operational Status', 'Check if contract is operational', [{ label: 'Operational Status', error: error, value: JSON.stringify(result) }]);
         });
+
+        display('flights-wrapper', 'Flights', 'Available Flights', [{ label: 'Flights', value: JSON.stringify(FLIGHTS) }]);
 
         contract.getActiveAirlines((error, result) => {
             console.log('Active airlines', error, result);
@@ -72,7 +75,7 @@ import './flightsurety.css';
             });
         });
 
-        // Register Airline
+        // Fund Airline
         DOM.elid('fund-airline').addEventListener('click', () => {
             let airline = DOM.elid('airline-address').value;
             let seedFund = DOM.elid('seed-funding').value;
@@ -94,16 +97,45 @@ import './flightsurety.css';
                     if (error) {
                         displayResult('Flights Registration', '', error);
                     } else {
-                        display('flights-wrapper', 'Oracles', 'Trigger oracles', [{ label: 'Fetch Flight Status', error: error, value: JSON.stringify(result) }]);
+                        display('flights-wrapper', 'Flights', 'Register Flights', [{ label: 'Flight', error: error, value: JSON.stringify(result) }]);
                     }
                 });
             });
         });
 
+        DOM.elid('purchase-insurance').addEventListener('click', () => {
+            let airline = DOM.elid('airline-address').value;
+            let flight = DOM.elid('flight-number').value;
+            let select = DOM.elid('passenger-id');
+            let passenger = select.options[select.selectedIndex].value;
+            let amount = DOM.elid('insurance-amount').value;;
+            
+            contract.buyInsurance(airline, flight, FLIGHTS[0].timestamp, passenger, amount, (error, result) => {
+                console.log('buyInsurance : ', result, error);
+                if (error) {
+                    displayResult('Insurance', '', error);
+                } else {
+                    displayResult('Insurance', result, '');
+                }
+            });
+        });
+
+        displayPassengers('passenger-id', contract.passengers);
+
     });
 
 })();
 
+function displayPassengers(id, accounts) {
+    var select = DOM.elid(id);
+    accounts.forEach(acc => {
+        var option = document.createElement("option");
+        option.value = acc;
+        option.innerHTML = acc;
+        select.options.add(option);
+    });
+
+}
 
 function displayResult(title, result, error) {
     console.log('Display error : ' + error);
@@ -113,7 +145,7 @@ function displayResult(title, result, error) {
     let resultP = DOM.elid('global-result');
     resultP.innerHTML = '';
     if (result) {
-        resultP.innerHTML = result;
+        resultP.innerHTML = 'Tx ID : ' + result;
     }
 
     let errorP = DOM.elid('global-error');

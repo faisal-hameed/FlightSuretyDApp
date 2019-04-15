@@ -20,10 +20,8 @@
     </nav>
 
     <main class="container">
-
-        <div id="display-wrapper" class="top-20">
+        <div id="display-status" class="top-20">
         </div>
-
         <div class="top-20">
             <h1 id="global-heading"></h1>
             <p id="global-result" style="color:green"></p>
@@ -43,13 +41,18 @@
             <btn class="btn btn-primary" id="fund-airline">Fund Airline</btn>
         </div>
 
-        <h4>Flight Insurance</h4>
-        <btn class="btn btn-primary" id="get-flights">Get flights</btn>
-        <div id="flights-wrapper" class="top-20">
+        <div id="flights-wrapper" class="top-20"></div>
+        <btn class="btn btn-primary" id="get-flights">Register flights</btn>
+
 
         </div>
         <div class="row top-20">
-            <label class="form">Purchase Insurance</label> <input type="text" value="SV-NYC" id="flight-number">
+            <label class="form">Purchase Insurance</label>
+            <input type="text" value="SV-NYC" id="flight-number">
+            <label>Amount(Ether)</label>
+            <input type="text" value="1" length="10" id="insurance-amount">
+            <select id="passenger-id">
+            </select>
             <btn class="btn btn-primary" id="purchase-insurance">Purchase</btn>
         </div>
 
@@ -58,7 +61,8 @@
             <label class="form">Flight</label> <input type="text" id="flight-number">
             <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
         </div>
-
+        <div id="display-wrapper" class="top-20">
+        </div>
     </main>
 
 </body>

@@ -1,4 +1,5 @@
 pragma solidity ^0.4.25;
+pragma experimental ABIEncoderV2;
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
@@ -17,13 +18,31 @@ contract FlightSuretyData {
 
     /************ All airlines ***************************************/ 
     mapping(address => Airline) private airlines;
-    address[] activeAirlines = new address[](0);    
+    address[] activeAirlines = new address[](0);
 
     struct Airline {
         address airline;
         bool isFunded;
         bool isRegistered;
     }
+
+    struct Flight {
+        address airline;
+        string flight;
+        uint256 timestamp;
+        bool isRegistered;
+    }
+
+    struct FlightInsurance {
+        address airline;
+        uint256 insurance;
+    }
+
+    mapping(bytes32 => Flight) flights; // All registered flights
+
+    mapping(address => FlightInsurance) insurance;
+
+    uint256 constant MAX_INSURANCE = 1 ether;
 
 
     /********************************************************************************************/
@@ -217,26 +236,7 @@ contract FlightSuretyData {
         return activeAirlines;
     }
 
-
     /************ All flights ****************************************/ 
-    struct Flight {
-        address airline;
-        string flight;
-        uint256 timestamp;
-        bool isRegistered;
-    }
-
-    struct FlightInsurance {
-        address airline;
-        uint256 insurance;
-    }
-
-    mapping(bytes32 => Flight) flights; // All registered flights
-
-    mapping(address => FlightInsurance) insurance;
-
-    uint256 constant MAX_INSURANCE = 1 ether;
-
 
    /**
     * @dev Register a future flight for insuring.
@@ -250,7 +250,7 @@ contract FlightSuretyData {
     )
     public
     requireIsOperational
-    //requireRegisteredAirline(airline)
+    requireRegisteredAirline(airline)
     {
         bytes32 key = getFlightKey(airline, flight, timestamp);
         require(!flights[key].isRegistered, "Flight is already registered");

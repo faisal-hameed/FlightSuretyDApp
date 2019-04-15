@@ -1,4 +1,5 @@
 import FlightSuretyApp from '../../build/contracts/FlightSuretyApp.json';
+import FlightSuretyData from '../../build/contracts/FlightSuretyData.json';
 import Config from './config.json';
 import Web3 from 'web3';
 
@@ -9,6 +10,7 @@ export default class Contract {
         this.web3 = new Web3(new Web3.providers.WebsocketProvider(config.url.replace('http', 'ws')));
         //this.web3 = new Web3(new Web3.providers.HttpProvider(config.url));
         this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, config.appAddress);
+        this.flightSuretyData = new this.web3.eth.Contract(FlightSuretyData.abi, config.dataAddress);
         this.initialize(callback);
         this.owner = null;
         this.airlines = [];
@@ -51,6 +53,16 @@ export default class Contract {
         self.flightSuretyApp.methods
             .registerFlight(airline, flight, timestamp)
             .send({ from: airline }, (error, result) => {
+                callback(error, result);
+            });
+    }
+
+    buyInsurance(airline, flight, timestamp, passenger, amount, callback) {
+        let self = this;
+        console.log('buyInsurance', airline, flight, timestamp);
+        self.flightSuretyApp.methods
+            .buyInsurance(airline, flight, timestamp)
+            .send({ from: passenger, value: amount }, (error, result) => {
                 callback(error, result);
             });
     }
@@ -122,7 +134,7 @@ export default class Contract {
                         //airline: event.returnValues.airline,
                         flight: event.returnValues.flight,
                         timestamp: event.returnValues.timestamp,
-                        statusCode: event.returnValues.statusCode, // statusCode
+                        statusCode: event.returnValues.status, // statusCode
                         index: event.returnValues.index // index requested
                     }
                     callback(error, result);
@@ -170,6 +182,28 @@ export default class Contract {
         });
     }
 
+
+    onEventFlightRegistered(callback) {
+        let self = this;
+        this.flightSuretyApp.events.FlightRegistered({
+            fromBlock: "latest"
+        }, function (error, event) {
+            console.log('Event type is : ' + event.event)
+            if (error) console.log('Error in reading event : ' + error)
+            else {
+                if (event.event === 'FlightRegistered') {
+                    let result = {
+                        event: event.event,
+                        airline: event.returnValues.airline,
+                        flight: event.returnValues.flight,
+                        timestamp: event.returnValues.timestamp
+                    }
+                    callback(error, result);
+                    console.log('Event (FlightRegistered) emited from smart contract : ' + JSON.stringify(event.returnValues))
+                }
+            }
+        });
+    }
 
     onEventFlightRegistered(callback) {
         let self = this;

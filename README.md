@@ -43,6 +43,16 @@ To build dapp for prod:
 
 Deploy the contents of the ./dapp folder
 
+# DApp UI
+
+1. Airline registration and funding
+<img src="./images/ui-fund-airline.png" alt="Drawing" style="width: 800px;"/>
+
+2. Flights registration
+<img src="./images/ui-flights.png" alt="Drawing" style="width: 800px;"/>
+
+3. Oracles and flight status
+<img src="./images/ui-oracles.png" alt="Drawing" style="width: 800px;"/>
 
 # Testing Smart Contracts
 

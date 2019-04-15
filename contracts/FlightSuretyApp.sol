@@ -84,9 +84,6 @@ contract FlightSuretyApp {
 
     modifier requireFunded(address airline) {
         require(flightDataContract.isAirlineFunded(airline), "Airline is not funded");
-        // if (activeAirlines.length > 0) {
-        //     require(airlines[airline].isFunded, "Airline is not funded");
-        // }  
         _;
     }
 
@@ -194,7 +191,6 @@ contract FlightSuretyApp {
         return flightDataContract.getActiveAirlines();
     }
 
-
     /**
     * @dev Fund airline by transffering value to contract address using debit first approach
     *
@@ -258,12 +254,11 @@ contract FlightSuretyApp {
         uint256 timestamp
     )
     public
+    requireFunded(airline)
     requireIsOperational
     {
-        //require(flightDataContract.isAirline(airline), "Airline is not registered for flights");
+        require(flightDataContract.isAirline(airline), "Airline is not registered for flights");
 
-        emit FlightRegistered(airline, flight, timestamp);
-        // Error Returned error: VM Exception while processing transaction: revert
         flightDataContract.registerFlight(airline, flight, timestamp);
         emit FlightRegistered(airline, flight, timestamp);
     }
