@@ -227,4 +227,25 @@ export default class Contract {
         });
     }
 
+    onEventInsuranceCredited(callback) {
+        let self = this;
+        this.flightSuretyData.events.InsuranceCredited({
+            fromBlock: "latest"
+        }, function (error, event) {
+            console.log('Event type is : ' + event.event)
+            if (error) console.log('Error in reading event : ' + error)
+            else {
+                if (event.event === 'InsuranceCredited') {
+                    let result = {
+                        event: event.event,
+                        passenger: event.returnValues.passenger,
+                        insurance: event.returnValues.insurance
+                    }
+                    callback(error, result);
+                    console.log('Event (InsuranceCredited) emited from smart contract : ' + JSON.stringify(event.returnValues))
+                }
+            }
+        });
+    }
+
 }

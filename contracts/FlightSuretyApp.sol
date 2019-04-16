@@ -5,7 +5,7 @@ pragma solidity ^0.4.25;
 // More info: https://www.nccgroup.trust/us/about-us/newsroom-and-events/blog/2018/november/smart-contract-insecurity-bad-arithmetic/
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "./FlightSuretyData.sol";
+//import "./FlightSuretyData.sol";
 
 /************************************************** */
 /* FlightSurety Smart Contract                      */
@@ -208,21 +208,21 @@ contract FlightSuretyApp {
     }
 
     
-//    /**
-//     * @dev Called after oracle has updated flight status
-//     *
-//     */  
-//     function processFlightStatus
-//     (
-//         address airline,
-//         string memory flight,
-//         uint256 timestamp,
-//         uint8 statusCode
-//     )
-//     internal
-//     pure
-//     {
-//     }
+   /**
+    * @dev Called after oracle has updated flight status
+    *
+    */  
+    function processFlightStatus
+    (
+        address airline,
+        string memory flight,
+        uint256 timestamp,
+        uint8 statusCode
+    )
+    internal
+    {
+        flightDataContract.processFlightStatus(airline, flight, timestamp, statusCode);
+    }
 
 
     // Generate a request for oracles to fetch flight information
@@ -384,7 +384,7 @@ contract FlightSuretyApp {
             emit FlightStatusInfo(airline, flight, timestamp, statusCode, index);
 
             // Handle flight status as appropriate
-            //processFlightStatus(airline, flight, timestamp, statusCode);
+            processFlightStatus(airline, flight, timestamp, statusCode);
         }
     }
 
@@ -449,3 +449,24 @@ contract FlightSuretyApp {
 // endregion
 
 }   
+
+
+contract FlightSuretyData {
+    function isOperational() public view returns(bool);
+    function setOperatingStatus(bool mode) external;
+
+    function isAirline(address airline) external view returns(bool); 
+    function isAirlineFunded(address airline) external view returns(bool);
+
+    function registerAirline(address airline) public;
+    function fundAirline(address airline) public payable;
+    function getActiveAirlines() external view returns(address[] memory);
+
+    function registerFlight(address airline, string flight, uint256 timestamp) public;
+    function isFlightRegistered(address airline, string flight, uint256 timestamp) public view returns(bool);
+    function processFlightStatus(address airline, string flight, uint256 timestamp, uint8 statusCode) external;
+
+    function buyInsurance(address airline, string flight, uint256 timestamp) external payable;
+    function creditInsurees(address passenger, address airline) external;
+    
+}

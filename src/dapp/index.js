@@ -46,6 +46,9 @@ import './flightsurety.css';
         contract.onEventFlightRegistered((error, result) => {
             displayResult('Flight Registered', JSON.stringify(result));
         });
+        contract.onEventInsuranceCredited((error, result) => {
+            display('insurance-wrapper', 'Insurance Credited', '', [{ label: 'Passengers insurance', error: error, value: JSON.stringify(result) }]);
+        });
 
 
         // Read transaction

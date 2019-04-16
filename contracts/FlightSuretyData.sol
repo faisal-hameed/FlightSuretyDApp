@@ -31,6 +31,7 @@ contract FlightSuretyData {
         string flight;
         uint256 timestamp;
         bool isRegistered;
+        address[] passengers;
     }
 
     struct FlightInsurance {
@@ -50,6 +51,7 @@ contract FlightSuretyData {
     /********************************************************************************************/
 
     event InsuranceCredited(
+        address passenger,
         uint256 insurance
     );
 
@@ -254,7 +256,30 @@ contract FlightSuretyData {
     {
         bytes32 key = getFlightKey(airline, flight, timestamp);
         require(!flights[key].isRegistered, "Flight is already registered");
-        flights[key] = Flight(airline, flight, timestamp, true);
+        address[] memory passengers = new address[](0);
+        flights[key] = Flight(airline, flight, timestamp, true, passengers);
+    }
+
+      /**
+    * @dev Called after oracle has updated flight status
+    *
+    */  
+    function processFlightStatus
+    (
+        address airline,
+        string flight,
+        uint256 timestamp,
+        uint8 statusCode
+    )
+    external
+    requireIsOperational
+    requireRegisteredAirline(airline)
+    {
+        bytes32 key = getFlightKey(airline, flight, timestamp);
+        address[] memory passengers = flights[key].passengers;
+        for(uint8 i = 0; i < passengers.length; i++) {
+            creditInsuree(passengers[i], airline);
+        }
     }
 
 
@@ -279,7 +304,7 @@ contract FlightSuretyData {
         address passenger,
         address airline
     ) 
-    external
+    public
     payable
     {
         uint256 insuranceAmount = insurance[passenger].insurance;
@@ -290,7 +315,7 @@ contract FlightSuretyData {
         uint256 refundAmount = insuranceAmount.mul(15).div(10); // 1.5x
         insurance[passenger].insurance = insurance[passenger].insurance.add(refundAmount);
 
-        emit InsuranceCredited(insurance[passenger].insurance);
+        emit InsuranceCredited(passenger, insurance[passenger].insurance);
     }
 
 
