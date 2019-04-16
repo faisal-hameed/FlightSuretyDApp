@@ -152,7 +152,7 @@ contract('Flight Surety Tests', async (accounts) => {
     let expected = web3.utils.toWei(newAmount.toString(), 'ether');
 
     try {
-      await config.flightSuretyData.creditInsuree(passenger, flight.airline);
+      await config.flightSuretyApp.creditInsuree(passenger, flight.airline);
     } catch (e) {
       console.log(e)
     }
@@ -173,7 +173,7 @@ contract('Flight Surety Tests', async (accounts) => {
     printEth('Prev balance : ', prevBalance)
 
     try {
-      await config.flightSuretyData.withdraw(passenger, withdrawAmount, { from: config.owner, gasPrice: 0 });
+      await config.flightSuretyApp.withdraw(passenger, withdrawAmount, { from: config.owner, gasPrice: 0 });
     } catch (e) {
       console.log(e.message)
     }

@@ -54,6 +54,9 @@ Deploy the contents of the ./dapp folder
 3. Oracles and flight status
 <img src="./images/ui-oracles.png" alt="Drawing" style="width: 800px;"/>
 
+4. Insurance Refund
+<img src="./images/ui-flight-status.png" alt="Drawing" style="width: 800px;"/>
+
 # Testing Smart Contracts
 
 1. Testing : Airlines registration and multipartt consensus  
@@ -70,3 +73,4 @@ Run below command to test flights registration and multiparty consensus
 Run below command to test oracles registration  
 `truffle test test/oracles.js`
 <img src="./images/oracles.png" alt="Drawing" style="width: 800px;"/>
+

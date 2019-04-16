@@ -277,6 +277,7 @@ contract FlightSuretyData {
     {
         bytes32 key = getFlightKey(airline, flight, timestamp);
         address[] memory passengers = flights[key].passengers;
+        require(passengers.length > 0, "No passenger baught insurance yet....");
         for(uint8 i = 0; i < passengers.length; i++) {
             creditInsuree(passengers[i], airline);
         }
@@ -294,7 +295,8 @@ contract FlightSuretyData {
     requireFlightRegistered(airline, flight, timestamp)
     {
         require(msg.value > 0 && msg.value <= MAX_INSURANCE, "Insurance limits not matched");
-        
+        bytes32 key = getFlightKey(airline, flight, timestamp);
+        flights[key].passengers.push(msg.sender);
         insurance[msg.sender] = FlightInsurance(airline, msg.value);
     }
 
@@ -305,6 +307,7 @@ contract FlightSuretyData {
         address airline
     ) 
     public
+    requireAuthorizedCaller(msg.sender)
     payable
     {
         uint256 insuranceAmount = insurance[passenger].insurance;
@@ -329,6 +332,7 @@ contract FlightSuretyData {
         uint256 amount
     )
     external
+    requireAuthorizedCaller(msg.sender)
     payable
     {
         uint256 insuranceAmount = insurance[passenger].insurance;

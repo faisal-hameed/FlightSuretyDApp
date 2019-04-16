@@ -52,7 +52,7 @@ export default class Contract {
         console.log(airline, flight, timestamp);
         self.flightSuretyApp.methods
             .registerFlight(airline, flight, timestamp)
-            .send({ from: airline }, (error, result) => {
+            .send({ from: airline, gas: 4712388, gasPrice: 100000000000 }, (error, result) => {
                 callback(error, result);
             });
     }
@@ -62,7 +62,7 @@ export default class Contract {
         console.log('buyInsurance', airline, flight, timestamp);
         self.flightSuretyApp.methods
             .buyInsurance(airline, flight, timestamp)
-            .send({ from: passenger, value: amount }, (error, result) => {
+            .send({ from: passenger, value: amount, gas: 4712388, gasPrice: 100000000000 }, (error, result) => {
                 callback(error, result);
             });
     }
@@ -103,15 +103,10 @@ export default class Contract {
             });
     }
 
-    fetchFlightStatus(flight, callback) {
+    fetchFlightStatus(airline, flight, timestamp, callback) {
         let self = this;
-        let payload = {
-            airline: self.airlines[0],
-            flight: flight,
-            timestamp: Math.floor(Date.now() / 1000)
-        }
         self.flightSuretyApp.methods
-            .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
+            .fetchFlightStatus(airline, flight, timestamp)
             .send({ from: self.owner }, (error, result) => {
                 console.log('fetchFlightStatus result : ' + result);
                 callback(result);
